@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Disaster GPS Board</title>
+  <title>Disaster GPS Assistance</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Maps JavaScript API -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap&libraries=&v=weekly" async></script>
+  
 </head>
 <body class="bg-gray-100">
   <div class="container mx-auto p-4">
@@ -18,6 +22,9 @@
       </button>
       <p id="locationDisplay" class="mt-2 text-gray-700"></p>
     </div>
+
+    <!-- Google Map -->
+    <div id="map" class="w-full h-96 bg-gray-300 rounded shadow-md mb-6"></div>
 
     <!-- Post Section -->
     <div class="bg-white shadow-md rounded p-4 mb-6">
