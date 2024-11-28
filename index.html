@@ -1,47 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js"></script>
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>แจ้งพิกัด GPS</title>
-  <script defer src="script.js"></script>
+  <title>Disaster Assistance Map</title>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js"></script>
   <script src="https://api.longdo.com/map/?key=483f88e40ef3c13853a6d54dd6a8fd5c"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-  <div class="container mx-auto p-4">
-    <div class="bg-white shadow-md rounded p-6 mb-6">
-      <h1 class="text-2xl font-bold mb-4">ระบบแจ้งพิกัด GPS พร้อมแผนที่</h1>
+<body class="bg-gray-100 text-gray-800">
+  <header class="bg-blue-600 text-white text-center py-4">
+    <h1 class="text-2xl font-bold">Disaster Assistance Map</h1>
+  </header>
 
-      <!-- ปุ่ม Get Location -->
-      <div class="bg-gray-100 shadow-md rounded p-4 mb-6">
-        <h2 class="text-xl font-semibold mb-2">แจ้งพิกัด GPS ปัจจุบัน</h2>
-        <button id="getLocation" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-          Get Location
-        </button>
-        <p id="locationDisplay" class="mt-2 text-gray-700"></p>
-        <p class="mt-2 text-sm text-gray-500">
-          ระบบจะแสดงแผนที่และลิงก์ไปยังตำแหน่งใน <strong>Longdo Map</strong>
-        </p>
-      </div>
+  <main class="container mx-auto px-4 py-6">
+    <!-- Map Section -->
+    <section class="mb-6">
+      <div id="map" class="w-full h-64 rounded shadow"></div>
+    </section>
 
-      <!-- แผนที่ -->
-      <div id="map" class="w-full h-64 border rounded mb-4"></div>
-
-      <!-- กล่องข้อความสำหรับโพสต์ -->
-      <textarea id="postContent" class="w-full border rounded p-2 mb-4" rows="4" placeholder="ใส่ข้อความเพื่อโพสต์..."></textarea>
-      <button id="postButton" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-        โพสต์
+    <!-- Get Location & Post Form -->
+    <section class="bg-white p-6 rounded shadow mb-6">
+      <button id="getLocation" class="bg-blue-600 text-white px-4 py-2 rounded mb-4">
+        Get Current Location
       </button>
-    </div>
+      <p id="locationDisplay" class="text-sm text-gray-500 mb-4">Click "Get Current Location" to display your coordinates.</p>
 
-    <!-- บอร์ดโพสต์ -->
-    <div id="postsBoard" class="space-y-4">
-      <!-- โพสต์จะแสดงในส่วนนี้ -->
-    </div>
-  </div>
+      <textarea id="postContent" rows="3" class="w-full p-3 border rounded mb-4" placeholder="Enter your message..."></textarea>
+      <button id="postButton" class="bg-green-600 text-white px-4 py-2 rounded">
+        Post
+      </button>
+    </section>
+
+    <!-- Posts Board -->
+    <section>
+      <h2 class="text-xl font-bold mb-4">Recent Posts</h2>
+      <div id="postsBoard" class="space-y-4">
+        <!-- Posts will be loaded here -->
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-blue-600 text-white text-center py-2">
+    <p>Disaster Assistance Map © 2024</p>
+  </footer>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyC39q6CW6etk1TzE1AyFEsJTqRd0Eh_p48",
+      authDomain: "disasterreport-c5898.firebaseapp.com",
+      projectId: "disasterreport-c5898",
+      storageBucket: "disasterreport-c5898.firebasestorage.app",
+      messagingSenderId: "98550078682",
+      appId: "1:98550078682:web:1e5fee774b6ce52e32d9e3",
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Initialize Longdo Map
+    let map;
+    let currentMarker;
+    let currentLocation = { lat: null, lng: null };
+
+    function initializeMap() {
+      map = new longdo.Map({
+        placeholder: document.getElementById("map"),
+      });
+      map.location({ lon: 100.5014, lat: 13.7563 }, true); // Default: Bangkok
+      map.zoom(12);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initializeMap();
+
+      document.getElementById("getLocation").addEventListener("click", () => {
+        if (!navigator.geolocation) {
+          alert("Geolocation is not supported by your browser.");
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            currentLocation.lat = position.coords.latitude;
+            currentLocation.lng = position.coords.longitude;
+
+            // Show location on map
+            map.location({ lon: currentLocation.lng, lat: currentLocation.lat }, true);
+            if (currentMarker) {
+              map.Overlays.remove(currentMarker);
+            }
+            currentMarker = new longdo.Marker({ lon: currentLocation.lng, lat: currentLocation.lat });
+            map.Overlays.add(currentMarker);
+
+            document.getElementById(
+              "locationDisplay"
+            ).textContent = `พิกัดปัจจุบัน: Latitude ${currentLocation.lat}, Longitude ${currentLocation.lng}`;
+          },
+          (error) => {
+            alert("Unable to retrieve location. Please try again.");
+            console.error(error);
+          }
+        );
+      });
+
+      document.getElementById("postButton").addEventListener("click", async () => {
+        const postContent = document.getElementById("postContent").value;
+
+        if (!postContent || !currentLocation.lat || !currentLocation.lng) {
+          alert("Please provide content and location.");
+          return;
+        }
+
+        // Save data to Firebase Firestore
+        try {
+          await db.collection("posts").add({
+            content: postContent,
+            location: {
+              lat: currentLocation.lat,
+              lng: currentLocation.lng,
+            },
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+
+          alert("โพสต์ของคุณถูกบันทึกเรียบร้อยแล้ว!");
+          displayPosts(); // Update the post board
+        } catch (error) {
+          console.error("Error saving post: ", error);
+          alert("ไม่สามารถบันทึกโพสต์ได้");
+        }
+
+        document.getElementById("postContent").value = ""; // Clear input
+      });
+
+      // Function to display posts
+      async function displayPosts() {
+        const postsBoard = document.getElementById("postsBoard");
+        postsBoard.innerHTML = ""; // Clear existing posts
+
+        try {
+          const querySnapshot = await db.collection("posts").orderBy("timestamp", "desc").get();
+          querySnapshot.forEach((doc) => {
+            const post = doc.data();
+
+            const postDiv = document.createElement("div");
+            postDiv.className = "bg-white shadow rounded p-4";
+
+            const postText = document.createElement("p");
+            postText.className = "text-gray-800";
+            postText.textContent = post.content;
+
+            const postLocation = document.createElement("p");
+            postLocation.className = "text-sm text-gray-500";
+            postLocation.innerHTML = `Location: Latitude ${post.location.lat}, Longitude ${post.location.lng}
+              <a href="https://map.longdo.com/?lat=${post.location.lat}&lon=${post.location.lng}" 
+              target="_blank" class="text-blue-500 underline">เปิดในแผนที่</a>`;
+
+            postDiv.appendChild(postText);
+            postDiv.appendChild(postLocation);
+            postsBoard.appendChild(postDiv);
+          });
+        } catch (error) {
+          console.error("Error fetching posts: ", error);
+        }
+      }
+
+      // Load posts on page load
+      displayPosts();
+    });
+  </script>
 </body>
 </html>
