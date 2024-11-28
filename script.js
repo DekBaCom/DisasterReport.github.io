@@ -1,53 +1,3 @@
-// Variables
-let currentLocation = { lat: null, lng: null };
-let map;
-let marker;
-
-// Initialize Longdo Map
-function initMap() {
-  map = new longdo.Map({
-    placeholder: document.getElementById('map'),
-  });
-  map.location({ lat: 13.736717, lon: 100.523186 }); // Default center: Bangkok
-  map.zoom(12); // Default zoom level
-}
-
-// Get Location Button
-document.getElementById("getLocation").addEventListener("click", () => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        currentLocation.lat = position.coords.latitude;
-        currentLocation.lng = position.coords.longitude;
-
-        // Update location display
-        document.getElementById("locationDisplay").textContent = 
-          `Latitude: ${currentLocation.lat}, Longitude: ${currentLocation.lng}`;
-
-        // Update map location
-        map.location({ lat: currentLocation.lat, lon: currentLocation.lng });
-        
-        // Add or update marker
-        if (!marker) {
-          marker = new longdo.Marker(
-            { lat: currentLocation.lat, lon: currentLocation.lng },
-            { title: "Your Location" }
-          );
-          map.Overlays.add(marker);
-        } else {
-          marker.location({ lat: currentLocation.lat, lon: currentLocation.lng });
-        }
-      },
-      (error) => {
-        alert("Unable to retrieve location: " + error.message);
-      }
-    );
-  } else {
-    alert("Geolocation is not supported by your browser.");
-  }
-});
-
-// Post Button
 document.getElementById("postButton").addEventListener("click", () => {
   const postContent = document.getElementById("postContent").value;
   if (!postContent || !currentLocation.lat || !currentLocation.lng) {
@@ -65,9 +15,17 @@ document.getElementById("postButton").addEventListener("click", () => {
   postText.className = "text-gray-800";
   postText.textContent = postContent;
 
+  // Generate Longdo Map link
+  const postLocationLink = document.createElement("a");
+  postLocationLink.className = "text-blue-500 underline";
+  postLocationLink.href = `https://map.longdo.com/?lat=${currentLocation.lat}&lon=${currentLocation.lng}`;
+  postLocationLink.target = "_blank"; // Open in new tab
+  postLocationLink.textContent = "เปิดตำแหน่งในแผนที่";
+
   const postLocation = document.createElement("p");
   postLocation.className = "text-sm text-gray-500";
   postLocation.textContent = `Location: Latitude ${currentLocation.lat}, Longitude ${currentLocation.lng}`;
+  postLocation.appendChild(postLocationLink); // Add link to location text
 
   // Append elements to post
   post.appendChild(postText);
@@ -79,6 +37,3 @@ document.getElementById("postButton").addEventListener("click", () => {
   // Clear post content
   document.getElementById("postContent").value = "";
 });
-
-// Initialize map when the page loads
-window.onload = initMap;
