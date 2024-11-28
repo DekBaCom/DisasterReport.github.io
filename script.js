@@ -1,3 +1,18 @@
+// Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyC39q6CW6etk1TzE1AyFEsJTqRd0Eh_p48",
+  authDomain: "disasterreport-c5898.firebaseapp.com",
+  projectId: "disasterreport-c5898",
+  storageBucket: "disasterreport-c5898.firebasestorage.app",
+  messagingSenderId: "98550078682",
+  appId: "1:98550078682:web:1e5fee774b6ce52e32d9e3",
+};
+
+// Initialize Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Initialize Longdo Map
 let map;
 let currentMarker;
 let currentLocation = { lat: null, lng: null };
@@ -6,8 +21,6 @@ function initializeMap() {
   map = new longdo.Map({
     placeholder: document.getElementById("map"),
   });
-
-  // ตั้งค่าการแสดงแผนที่เบื้องต้น
   map.location({ lon: 100.5014, lat: 13.7563 }, true); // Bangkok
   map.zoom(12);
 }
@@ -26,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
         currentLocation.lat = position.coords.latitude;
         currentLocation.lng = position.coords.longitude;
 
-        // แสดงตำแหน่งบนแผนที่
+        // Show on map
         map.location({ lon: currentLocation.lng, lat: currentLocation.lat }, true);
         if (currentMarker) {
           map.Overlays.remove(currentMarker);
@@ -34,7 +47,6 @@ document.addEventListener("DOMContentLoaded", () => {
         currentMarker = new longdo.Marker({ lon: currentLocation.lng, lat: currentLocation.lat });
         map.Overlays.add(currentMarker);
 
-        // แสดงข้อความพิกัดในหน้าเว็บ
         document.getElementById(
           "locationDisplay"
         ).textContent = `พิกัดปัจจุบัน: Latitude ${currentLocation.lat}, Longitude ${currentLocation.lng}`;
@@ -46,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   });
 
-  document.getElementById("postButton").addEventListener("click", () => {
+  document.getElementById("postButton").addEventListener("click", async () => {
     const postContent = document.getElementById("postContent").value;
 
     if (!postContent || !currentLocation.lat || !currentLocation.lng) {
@@ -54,36 +66,59 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const postsBoard = document.getElementById("postsBoard");
+    // Save data to Firebase Firestore
+    try {
+      await db.collection("posts").add({
+        content: postContent,
+        location: {
+          lat: currentLocation.lat,
+          lng: currentLocation.lng,
+        },
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      });
 
-    // สร้างโพสต์ใหม่
-    const post = document.createElement("div");
-    post.className = "bg-white shadow rounded p-4";
+      alert("โพสต์ของคุณถูกบันทึกเรียบร้อยแล้ว!");
+      displayPosts(); // Update the post board
+    } catch (error) {
+      console.error("Error saving post: ", error);
+      alert("ไม่สามารถบันทึกโพสต์ได้");
+    }
 
-    const postText = document.createElement("p");
-    postText.className = "text-gray-800";
-    postText.textContent = postContent;
-
-    // ลิงก์ Longdo Map
-    const postLocationLink = document.createElement("a");
-    postLocationLink.className = "text-blue-500 underline";
-    postLocationLink.href = `https://map.longdo.com/?lat=${currentLocation.lat}&lon=${currentLocation.lng}`;
-    postLocationLink.target = "_blank"; // เปิดในแท็บใหม่
-    postLocationLink.textContent = "เปิดตำแหน่งในแผนที่";
-
-    const postLocation = document.createElement("p");
-    postLocation.className = "text-sm text-gray-500";
-    postLocation.textContent = `Location: Latitude ${currentLocation.lat}, Longitude ${currentLocation.lng}`;
-    postLocation.appendChild(postLocationLink); // เพิ่มลิงก์ไปยังข้อความพิกัด
-
-    // เพิ่มข้อความและลิงก์ในโพสต์
-    post.appendChild(postText);
-    post.appendChild(postLocation);
-
-    // เพิ่มโพสต์ในบอร์ด
-    postsBoard.appendChild(post);
-
-    // ล้างเนื้อหาข้อความหลังโพสต์
-    document.getElementById("postContent").value = "";
+    document.getElementById("postContent").value = ""; // Clear input
   });
+
+  // Function to display posts
+  async function displayPosts() {
+    const postsBoard = document.getElementById("postsBoard");
+    postsBoard.innerHTML = ""; // Clear existing posts
+
+    try {
+      const querySnapshot = await db.collection("posts").orderBy("timestamp", "desc").get();
+      querySnapshot.forEach((doc) => {
+        const post = doc.data();
+
+        const postDiv = document.createElement("div");
+        postDiv.className = "bg-white shadow rounded p-4";
+
+        const postText = document.createElement("p");
+        postText.className = "text-gray-800";
+        postText.textContent = post.content;
+
+        const postLocation = document.createElement("p");
+        postLocation.className = "text-sm text-gray-500";
+        postLocation.innerHTML = `Location: Latitude ${post.location.lat}, Longitude ${post.location.lng}
+          <a href="https://map.longdo.com/?lat=${post.location.lat}&lon=${post.location.lng}" 
+          target="_blank" class="text-blue-500 underline">เปิดในแผนที่</a>`;
+
+        postDiv.appendChild(postText);
+        postDiv.appendChild(postLocation);
+        postsBoard.appendChild(postDiv);
+      });
+    } catch (error) {
+      console.error("Error fetching posts: ", error);
+    }
+  }
+
+  // Load posts on page load
+  displayPosts();
 });
