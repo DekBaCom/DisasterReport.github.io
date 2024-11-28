@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>แจ้งพิกัด GPS</title>
   <script defer src="script.js"></script>
+  <script src="https://api.longdo.com/map/?key=483f88e40ef3c13853a6d54dd6a8fd5c"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
   <div class="container mx-auto p-4">
     <div class="bg-white shadow-md rounded p-6 mb-6">
-      <h1 class="text-2xl font-bold mb-4">ระบบแจ้งพิกัด GPS</h1>
+      <h1 class="text-2xl font-bold mb-4">ระบบแจ้งพิกัด GPS พร้อมแผนที่</h1>
 
       <!-- ปุ่ม Get Location -->
       <div class="bg-gray-100 shadow-md rounded p-4 mb-6">
@@ -20,9 +21,12 @@
         </button>
         <p id="locationDisplay" class="mt-2 text-gray-700"></p>
         <p class="mt-2 text-sm text-gray-500">
-          ระบบจะแสดงลิงก์เพื่อเปิดตำแหน่งใน <strong>Longdo Map</strong> หลังจากการโพสต์
+          ระบบจะแสดงแผนที่และลิงก์ไปยังตำแหน่งใน <strong>Longdo Map</strong>
         </p>
       </div>
+
+      <!-- แผนที่ -->
+      <div id="map" class="w-full h-64 border rounded mb-4"></div>
 
       <!-- กล่องข้อความสำหรับโพสต์ -->
       <textarea id="postContent" class="w-full border rounded p-2 mb-4" rows="4" placeholder="ใส่ข้อความเพื่อโพสต์..."></textarea>
