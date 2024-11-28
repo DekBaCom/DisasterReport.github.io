@@ -9,7 +9,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // Initialize Longdo Map
@@ -21,13 +21,14 @@ function initializeMap() {
   map = new longdo.Map({
     placeholder: document.getElementById("map"),
   });
-  map.location({ lon: 100.5014, lat: 13.7563 }, true); // Bangkok
+  map.location({ lon: 100.5014, lat: 13.7563 }, true); // Default: Bangkok
   map.zoom(12);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   initializeMap();
 
+  // Handle Get Location Button
   document.getElementById("getLocation").addEventListener("click", () => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser.");
@@ -39,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
         currentLocation.lat = position.coords.latitude;
         currentLocation.lng = position.coords.longitude;
 
-        // Show on map
+        // Show location on map
         map.location({ lon: currentLocation.lng, lat: currentLocation.lat }, true);
         if (currentMarker) {
           map.Overlays.remove(currentMarker);
@@ -58,11 +59,12 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   });
 
+  // Handle Post Button
   document.getElementById("postButton").addEventListener("click", async () => {
     const postContent = document.getElementById("postContent").value;
 
     if (!postContent || !currentLocation.lat || !currentLocation.lng) {
-      alert("Please provide content and location.");
+      alert("กรุณาใส่ข้อความและเลือกพิกัด");
       return;
     }
 
