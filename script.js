@@ -1,5 +1,16 @@
 // Variables
 let currentLocation = { lat: null, lng: null };
+let map;
+let marker;
+
+// Function to initialize Google Map
+function initMap() {
+  // Default map center
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: { lat: 13.736717, lng: 100.523186 }, // Default to Bangkok
+    zoom: 12,
+  });
+}
 
 // Get Location Button
 document.getElementById("getLocation").addEventListener("click", () => {
@@ -8,8 +19,27 @@ document.getElementById("getLocation").addEventListener("click", () => {
       (position) => {
         currentLocation.lat = position.coords.latitude;
         currentLocation.lng = position.coords.longitude;
+
+        // Update location display
         document.getElementById("locationDisplay").textContent = 
           `Latitude: ${currentLocation.lat}, Longitude: ${currentLocation.lng}`;
+
+        // Show the marker on Google Map
+        const newLatLng = new google.maps.LatLng(currentLocation.lat, currentLocation.lng);
+        
+        // Center map on current location
+        map.setCenter(newLatLng);
+
+        // Place or move the marker
+        if (!marker) {
+          marker = new google.maps.Marker({
+            position: newLatLng,
+            map: map,
+            title: "Your Location",
+          });
+        } else {
+          marker.setPosition(newLatLng);
+        }
       },
       (error) => {
         alert("Unable to retrieve location: " + error.message);
@@ -42,39 +72,9 @@ document.getElementById("postButton").addEventListener("click", () => {
   postLocation.className = "text-sm text-gray-500";
   postLocation.textContent = `Location: Latitude ${currentLocation.lat}, Longitude ${currentLocation.lng}`;
 
-  // Comment Section
-  const commentSection = document.createElement("div");
-  commentSection.className = "mt-4";
-
-  const commentInput = document.createElement("input");
-  commentInput.className = "border p-2 w-full rounded mb-2";
-  commentInput.placeholder = "แสดงความคิดเห็น...";
-
-  const commentButton = document.createElement("button");
-  commentButton.className = "bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600";
-  commentButton.textContent = "ส่ง";
-
-  commentButton.addEventListener("click", () => {
-    const commentText = commentInput.value;
-    if (!commentText) {
-      alert("กรุณาใส่ข้อความก่อนส่ง!");
-      return;
-    }
-
-    const comment = document.createElement("p");
-    comment.className = "text-sm text-gray-700 mt-2";
-    comment.textContent = commentText;
-    commentSection.appendChild(comment);
-    commentInput.value = "";
-  });
-
-  commentSection.appendChild(commentInput);
-  commentSection.appendChild(commentButton);
-
   // Append elements to post
   post.appendChild(postText);
   post.appendChild(postLocation);
-  post.appendChild(commentSection);
 
   // Append post to board
   postsBoard.appendChild(post);
