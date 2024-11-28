@@ -3,13 +3,13 @@ let currentLocation = { lat: null, lng: null };
 let map;
 let marker;
 
-// Function to initialize Google Map
+// Initialize Longdo Map
 function initMap() {
-  // Default map center
-  map = new google.maps.Map(document.getElementById("map"), {
-    center: { lat: 13.736717, lng: 100.523186 }, // Default to Bangkok
-    zoom: 12,
+  map = new longdo.Map({
+    placeholder: document.getElementById('map'),
   });
+  map.location({ lat: 13.736717, lon: 100.523186 }); // Default center: Bangkok
+  map.zoom(12); // Default zoom level
 }
 
 // Get Location Button
@@ -24,21 +24,18 @@ document.getElementById("getLocation").addEventListener("click", () => {
         document.getElementById("locationDisplay").textContent = 
           `Latitude: ${currentLocation.lat}, Longitude: ${currentLocation.lng}`;
 
-        // Show the marker on Google Map
-        const newLatLng = new google.maps.LatLng(currentLocation.lat, currentLocation.lng);
+        // Update map location
+        map.location({ lat: currentLocation.lat, lon: currentLocation.lng });
         
-        // Center map on current location
-        map.setCenter(newLatLng);
-
-        // Place or move the marker
+        // Add or update marker
         if (!marker) {
-          marker = new google.maps.Marker({
-            position: newLatLng,
-            map: map,
-            title: "Your Location",
-          });
+          marker = new longdo.Marker(
+            { lat: currentLocation.lat, lon: currentLocation.lng },
+            { title: "Your Location" }
+          );
+          map.Overlays.add(marker);
         } else {
-          marker.setPosition(newLatLng);
+          marker.location({ lat: currentLocation.lat, lon: currentLocation.lng });
         }
       },
       (error) => {
@@ -82,3 +79,6 @@ document.getElementById("postButton").addEventListener("click", () => {
   // Clear post content
   document.getElementById("postContent").value = "";
 });
+
+// Initialize map when the page loads
+window.onload = initMap;
