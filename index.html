@@ -4,16 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Disaster Assistance Map</title>
+  
+  <!-- Firebase -->
   <script src="https://cdn.firebase.com/libs/firebase/8.10.0/firebase-app.js"></script>
   <script src="https://cdn.firebase.com/libs/firebase/8.10.0/firebase-firestore.js"></script>
-  <script src="https://api.longdo.com/map/?key=YOUR_LONGDO_MAP_API_KEY"></script>
+  
+  <!-- Longdo Map API -->
+  <script src="https://api.longdo.com/map/?key=483f88e40ef3c13853a6d54dd6a8fd5c"></script>
+  
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
   <style>
     #map {
       width: 100%;
-      height: 300px;
+      height: 400px; /* Adjust map size */
       border: 1px solid #ddd;
       margin-top: 10px;
+    }
+    #map-container {
+      width: 100%;
+      max-width: 800px;
+      margin: 20px auto;
     }
   </style>
 </head>
@@ -21,7 +33,9 @@
   <h1 class="text-2xl font-bold mb-4">ระบบแจ้งพิกัดช่วยเหลือ</h1>
 
   <!-- Map Section -->
-  <div id="map"></div>
+  <div id="map-container">
+    <div id="map"></div>
+  </div>
 
   <!-- Get Location Section -->
   <button id="getLocation" class="bg-blue-500 text-white px-4 py-2 mt-4 rounded shadow">
